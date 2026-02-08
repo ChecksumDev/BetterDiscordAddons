@@ -2,7 +2,7 @@
  * @name MessageUtilities
  * @author DevilBro
  * @authorId 278543574059057154
- * @version 2.0.0
+ * @version 2.0.1
  * @description Adds several Quick Actions for Messages (Delete, Edit, Pin, etc.)
  * @invite Jx3TjNS
  * @donate https://www.paypal.me/MircoWittrien
@@ -102,6 +102,13 @@ module.exports = (_ => {
 						"ChannelTextAreaForm"
 					]
 				};
+				
+				this.css = `
+					${BDFDB.dotCN.menu} [id^="message-"] ${BDFDB.dotCN.menuiconcontainer} {
+						width: unset;
+						max-width: 70px;
+					}
+				`;
 				
 				for (let type in this.defaults.bindings) {
 					let nativeAction = type.indexOf("__") != 0;
@@ -270,11 +277,9 @@ module.exports = (_ => {
 								}
 								if (action) hint = this.getActiveShortcutString(action);
 							}
-							if (hint) item.props.hint = _ => {
-								return BDFDB.ReactUtils.createElement(BDFDB.LibraryComponents.MenuItems.MenuHint, {
-									hint: hint
-								});
-							};
+							if (hint) item.props.icon = (...args) => BDFDB.ReactUtils.createElement(BDFDB.LibraryComponents.TextScroller, {
+								children: hint
+							});
 						}
 					}
 				}
