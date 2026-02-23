@@ -2,7 +2,7 @@
  * @name FriendNotifications
  * @author DevilBro
  * @authorId 278543574059057154
- * @version 2.1.4
+ * @version 2.1.5
  * @description Shows a Notification when a Friend or a User, you choose to observe, changes their Status
  * @invite Jx3TjNS
  * @donate https://www.paypal.me/MircoWittrien
@@ -862,12 +862,12 @@ module.exports = (_ => {
 							let toastString = BDFDB.StringUtils.htmlEscape(string)
 								.replace(/'{0,1}\$user'{0,1}/g, `<strong>${BDFDB.StringUtils.htmlEscape(name)}</strong>`)
 								.replace(/'{0,1}\$nick'{0,1}/g, nickname ? `<strong>${BDFDB.StringUtils.htmlEscape(nickname)}</strong>` : !hasUserPlaceholder ? `<strong>${BDFDB.StringUtils.htmlEscape(name)}</strong>` : "")
-								.replace(/'{0,1}\$statusOld'{0,1}/g, `<strong>${oldStatusName}</strong>`)
-								.replace(/'{0,1}\$status'{0,1}/g, `<strong>${statusName}</strong>`);
+								.replace(/'{0,1}\$statusOld'{0,1}/g, `<strong>${BDFDB.StringUtils.htmlEscape(oldStatusName)}</strong>`)
+								.replace(/'{0,1}\$status'{0,1}/g, `<strong>${BDFDB.StringUtils.htmlEscape(statusName)}</strong>`);
 							if (status.activity) {
 								toastString = toastString
-									.replace(/'{0,1}\$song'{0,1}|'{0,1}\$game'{0,1}/g, `<strong>${status.activity.name || status.activity.details || ""}</strong>`)
-									.replace(/'{0,1}\$artist'{0,1}|'{0,1}\$custom'{0,1}/g, `<strong>${[status.activity.emoji && status.activity.emoji.name, status.activity.state].filter(n => n).join(" ") || ""}</strong>`);
+									.replace(/'{0,1}\$song'{0,1}|'{0,1}\$game'{0,1}/g, `<strong>${BDFDB.StringUtils.htmlEscape(status.activity.name || status.activity.details || "")}</strong>`)
+									.replace(/'{0,1}\$artist'{0,1}|'{0,1}\$custom'{0,1}/g, `<strong>${BDFDB.StringUtils.htmlEscape([status.activity.emoji && status.activity.emoji.name, status.activity.state].filter(n => n).join(" ") || "")}</strong>`);
 							}
 							
 							let statusType = BDFDB.UserUtils.getStatus(user.id);
