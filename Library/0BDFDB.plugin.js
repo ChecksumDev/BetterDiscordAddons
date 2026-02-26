@@ -2252,37 +2252,103 @@ module.exports = (_ => {
 					if (!plugin || !plugin.modulePatches) return;
 					let patchPriority = !isNaN(plugin.patchPriority) ? plugin.patchPriority : 5;
 					patchPriority = patchPriority < 1 ? (plugin == Internal ? 0 : 1) : (patchPriority > 9 ? (plugin == Internal ? 10 : 9) : Math.round(patchPriority));
+					let searchEntries = [], lazyEntries = [];
 					for (let patchType in plugin.modulePatches) {
 						if (!PluginStores.modulePatches[patchType]) PluginStores.modulePatches[patchType] = {};
 						for (let type of plugin.modulePatches[patchType]) {
-							if (InternalData.PatchModules[type]) {
-								let found = false;
-								if (!InternalData.PatchModules[type].noSearch && (patchType == "before" || patchType == "after")) {
-									let exports = (BDFDB.ModuleUtils.find(m => Internal.isCorrectModule(m, type) && m, {defaultExport: false, moduleName: type}) || {}).exports;
-									if (exports && !exports.default) for (let key of Object.keys(exports)) if (typeof exports[key] == "function" && !(exports[key].prototype && exports[key].prototype.render) && Internal.isCorrectModule(exports[key], type, false) && exports[key].toString().length < 50000) {
-										found = true;
-										BDFDB.PatchUtils.patch(plugin, exports, key, {[patchType]: e => Internal.initiatePatch(plugin, type, {
-											arguments: e.methodArguments,
-											instance: e.instance,
-											returnvalue: e.returnValue,
-											component: exports[key],
-											name: type,
-											methodname: "render",
-											patchtypes: [patchType]
-										})}, {name: type});
-										break;
-									}
-								}
-								if (!found) {
-									if (!PluginStores.modulePatches[patchType][type]) PluginStores.modulePatches[patchType][type] = [];
-									if (!PluginStores.modulePatches[patchType][type][patchPriority]) PluginStores.modulePatches[patchType][type][patchPriority] = [];
-									PluginStores.modulePatches[patchType][type][patchPriority].push(plugin);
-									if (PluginStores.modulePatches[patchType][type][patchPriority].length > 1) PluginStores.modulePatches[patchType][type][patchPriority] = BDFDB.ArrayUtils.keySort(PluginStores.modulePatches[patchType][type][patchPriority], "name");
-								}
-							}
-							else BDFDB.LogUtils.warn(`[${type}] not found in PatchModules InternalData`, plugin);
+							if (!InternalData.PatchModules[type]) { BDFDB.LogUtils.warn(`[${type}] not found in PatchModules InternalData`, plugin); continue; }
+							if (!InternalData.PatchModules[type].noSearch && (patchType == "before" || patchType == "after")) searchEntries.push({patchType, type});
+							else lazyEntries.push({patchType, type});
 						}
 					}
+					let foundExports = {};
+					let remaining = new Set(searchEntries.map(e => e.type));
+					if (remaining.size) {
+						const req = Internal.getWebModuleReq();
+						const isSearchable = (m, checkObject) => m && (checkObject && typeof m == "object" || typeof m == "function") && !m.constructor.toLocaleString().startsWith("function DOMTokenList()") && typeof m.toLocaleString == "function" && m.toLocaleString().indexOf("IntlMessagesProxy") == -1;
+						let moduleCache = BdApi.Data.load("0BDFDB", "ModuleIdCache") || {};
+						let cacheChanged = false;
+						for (let k in moduleCache) if (moduleCache[k] === false || !InternalData.PatchModules[k]) { delete moduleCache[k]; cacheChanged = true; }
+						let sessionNF = Internal._sessionNF || (Internal._sessionNF = new Set());
+						for (let type of [...remaining]) {
+							if (sessionNF.has(type)) { remaining.delete(type); continue; }
+							let cached = moduleCache[type];
+							if (cached != null && cached !== false) {
+								let modId = cached;
+								let valid = false;
+								if (req.c[modId] && req.c[modId].exports != window) {
+									let m = req.c[modId].exports;
+									if (isSearchable(m, true)) {
+										for (let key of Object.keys(m)) {
+											try { if (m[key] && isSearchable(m[key], true) && Internal.isCorrectModule(m[key], type)) { valid = true; break; } } catch(e) {}
+										}
+										if (!valid && typeof m == "function" && Internal.isCorrectModule(m, type)) valid = true;
+										if (!valid && req.m[modId] && isSearchable(req.m[modId]) && Internal.isCorrectModule(req.m[modId], type)) valid = true;
+										if (valid) { foundExports[type] = m; remaining.delete(type); }
+									}
+								}
+								if (!valid) { delete moduleCache[type]; cacheChanged = true; }
+							}
+						}
+						if (remaining.size) {
+							for (let i in req.c) {
+								if (!req.c.hasOwnProperty(i) || req.c[i].exports == window) continue;
+								let m = req.c[i].exports;
+								if (!isSearchable(m, true)) continue;
+								let mKeys = Object.keys(m);
+								let searchableKeys = mKeys.length < 400 ? mKeys.filter(key => { try { return m[key] && isSearchable(m[key], true); } catch(e) { return false; } }) : null;
+								for (let type of remaining) {
+									if (typeof m == "function" && Internal.isCorrectModule(m, type)) { foundExports[type] = m; moduleCache[type] = i; cacheChanged = true; remaining.delete(type); continue; }
+									if (m[type] && isSearchable(m[type], true) && Internal.isCorrectModule(m[type], type)) { foundExports[type] = m; moduleCache[type] = i; cacheChanged = true; remaining.delete(type); }
+									else if (m.__esModule && m.default && isSearchable(m.default, true) && Internal.isCorrectModule(m.default, type)) { foundExports[type] = m; moduleCache[type] = i; cacheChanged = true; remaining.delete(type); }
+								}
+								if (remaining.size && searchableKeys) for (let ki = 0; ki < searchableKeys.length && remaining.size; ki++) {
+									let fn = m[searchableKeys[ki]];
+									for (let type of remaining) {
+										if (Internal.isCorrectModule(fn, type)) { foundExports[type] = m; moduleCache[type] = i; cacheChanged = true; remaining.delete(type); }
+									}
+								}
+								if (!remaining.size) break;
+							}
+							if (remaining.size) for (let i in req.m) if (req.m.hasOwnProperty(i)) {
+								let m = req.m[i];
+								if (m && isSearchable(m) && req.c[i] && isSearchable(req.c[i].exports, true)) {
+									for (let type of remaining) if (Internal.isCorrectModule(m, type)) { foundExports[type] = req.c[i].exports; moduleCache[type] = i; cacheChanged = true; remaining.delete(type); }
+								}
+								if (!remaining.size) break;
+							}
+						}
+						if (remaining.size) for (let type of remaining) sessionNF.add(type);
+						if (cacheChanged) BdApi.Data.save("0BDFDB", "ModuleIdCache", moduleCache);
+					}
+					const registerPatch = (patchType, type) => {
+						let store = PluginStores.modulePatches[patchType];
+						if (!store[type]) store[type] = [];
+						if (!store[type][patchPriority]) store[type][patchPriority] = [];
+						store[type][patchPriority].push(plugin);
+						if (store[type][patchPriority].length > 1) store[type][patchPriority] = BDFDB.ArrayUtils.keySort(store[type][patchPriority], "name");
+					};
+					for (let {patchType, type} of searchEntries) {
+						let found = false, exports = foundExports[type];
+						if (exports && !exports.default) for (let key of Object.keys(exports)) {
+							let fn = exports[key];
+							if (typeof fn == "function" && !(fn.prototype && fn.prototype.render) && Internal.isCorrectModule(fn, type, false) && fn.toString().length < 50000) {
+								found = true;
+								BDFDB.PatchUtils.patch(plugin, exports, key, {[patchType]: e => Internal.initiatePatch(plugin, type, {
+									arguments: e.methodArguments,
+									instance: e.instance,
+									returnvalue: e.returnValue,
+									component: exports[key],
+									name: type,
+									methodname: "render",
+									patchtypes: [patchType]
+								})}, {name: type});
+								break;
+							}
+						}
+						if (!found) registerPatch(patchType, type);
+					}
+					for (let {patchType, type} of lazyEntries) registerPatch(patchType, type);
 				};
 				Internal.addContextPatches = function (plugin) {
 					if (!InternalData.ContextMenuTypes || !BdApi || !BdApi.ContextMenu || typeof BdApi.ContextMenu.patch != "function") return;
