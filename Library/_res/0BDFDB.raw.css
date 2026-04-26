@@ -109,9 +109,6 @@ img:not([src]), img[src=""], img[src="null"] {
 [REPLACE_CLASS_h5][REPLACE_CLASS_marginreset] {
 	flex: 1 1 auto;
 }
-[REPLACE_CLASS_flexhorizontal] > [REPLACE_CLASS_settingsrow] + [REPLACE_CLASS_settingsrow] {
-	margin-left: 6px;
-}
 
 [REPLACE_CLASS_settingspanel] [REPLACE_CLASS_slider] {
 	min-width: 170px;
@@ -565,13 +562,6 @@ img:not([src]), img[src=""], img[src="null"] {
 [REPLACE_CLASS_table] {
 	position: relative;
 	width: 100%;
-}
-[REPLACE_CLASS_table] [REPLACE_CLASS_tablerow]:first-child {
-	padding: 0px 12px 8px 0;
-	margin-bottom: 5px;
-	box-sizing: border-box;
-	background-color: var(--background-base-low);
-	border-bottom: 1px solid var(--background-modifier-accent);
 }
 [REPLACE_CLASS_tableheadercell] {
 	color: var(--text-subtle);
