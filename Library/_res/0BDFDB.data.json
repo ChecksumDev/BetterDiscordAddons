@@ -361,7 +361,7 @@
 			"DirectMessage": ["getUser", "getRecipientId"]
 		}},
 		"ScrollerBase": {"strings": ["paddingFix", "padding-left"]},
-		"SearchResultsPagination": {"strings": ["maxVisiblePages", "pageSize", "floor"]},
+		"SearchResultsPagination": {"strings": ["maxVisiblePages", "pageSize", "innerClassName"]},
 		"SpinnerComponents": {"strings": ["WANDERING_CUBES", "wanderingCubes", ".spinningCircleInner"], "exported": false, "value": "exports", "map": {
 			"Spinner": [".spinningCircleInner"],
 			"Types": ["WANDERING_CUBES", "wanderingCubes"]
