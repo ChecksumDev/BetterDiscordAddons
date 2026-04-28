@@ -2,7 +2,7 @@
  * @name DisplayServersAsChannels
  * @author DevilBro
  * @authorId 278543574059057154
- * @version 2.0.2
+ * @version 2.0.3
  * @description Displays Servers in a similar way as Channels
  * @invite Jx3TjNS
  * @donate https://www.paypal.me/MircoWittrien
@@ -78,7 +78,6 @@ module.exports = (_ => {
 
 				this.modulePatches = {
 					before: [
-						"GuildItem",
 						"TooltipContainer",
 						"TooltipContainerWithShortcut"
 					],
@@ -227,34 +226,30 @@ module.exports = (_ => {
 			}
 			
 			processGuildItem (e) {
-				if (!e.instance.props.guild || typeof e.instance.props?.children?.props?.className != "string" || e.instance.props?.children?.props?.className.indexOf(BDFDB.disCN.guildcontainer) == -1) return;
-				if (!e.returnvalue) {
-					let guildcontainer = BDFDB.ReactUtils.findChild(e.instance, {props: [["className", BDFDB.disCN.guildcontainer]]});
-					if (guildcontainer) guildcontainer.props.className = BDFDB.DOMUtils.formatClassName(guildcontainer.props.className, BDFDB.LibraryStores.UserGuildSettingsStore.isMuted(e.instance.props.guild.id) && BDFDB.disCN._displayserversaschannelsmuted);
-					e.instance.props.children = this.removeMask(this.removeMask(e.instance.props.children));
-					let backBadges = [e.instance.props.children.props.children].flat(10).slice(1);
-					e.instance.props.children.props.children = [[e.instance.props.children.props.children].flat(10)[0]];
-					this.addElementName([e.instance.props.children.props.children].flat(10)[0], e.instance.props.guild.name, {
-						frontBadges: [
-							this.settings.general.showGuildIcon && BDFDB.ReactUtils.createElement(BDFDB.LibraryComponents.GuildIcon, {
-								animate: e.instance.props.animatable && e.instance.state && e.instance.state.hovered,
-								guild: e.instance.props.guild,
-								size: BDFDB.LibraryComponents.GuildIcon.Sizes.SMALLER
-							}),
-							this.settings.general.showGuildBadge && BDFDB.ReactUtils.createElement(BDFDB.LibraryComponents.GuildBadge, {
-								size: this.settings.amounts.serverElementHeight * 0.5,
-								badgeColor: BDFDB.DiscordConstants.Colors.PRIMARY_400,
-								tooltipColor: BDFDB.LibraryComponents.TooltipContainer.Colors.BLACK,
-								tooltipPosition: BDFDB.LibraryComponents.TooltipContainer.Positions.RIGHT,
-								guild: e.instance.props.guild
-							})
-						],
-						backBadges: backBadges
-					});
-				}
-				else {
-					if (!BDFDB.BDUtils.isPluginEnabled("ServerDetails")) e.returnvalue = this.removeTooltip(e.instance.props.children, e.instance.props.guild);
-				}
+				if (!e.instance.props.guild) return;
+				let guildcontainer = BDFDB.ReactUtils.findChild(e.returnvalue, {props: [["className", BDFDB.disCN.guildcontainer]]});
+				if (guildcontainer) guildcontainer.props.className = BDFDB.DOMUtils.formatClassName(guildcontainer.props.className, BDFDB.LibraryStores.UserGuildSettingsStore.isMuted(e.instance.props.guild.id) && BDFDB.disCN._displayserversaschannelsmuted);
+				e.returnvalue.props.children[1].props.children = this.removeMask(this.removeMask(e.returnvalue.props.children[1].props.children));
+				let backBadges = [e.returnvalue.props.children[1].props.children.props.children].flat(10).slice(1);
+				e.returnvalue.props.children[1].props.children.props.children = [[e.returnvalue.props.children[1].props.children.props.children].flat(10)[0]];
+				if (!BDFDB.BDUtils.isPluginEnabled("ServerDetails")) e.returnvalue.props.children[1] = this.removeTooltip(e.returnvalue.props.children[1].props.children, e.instance.props.guild);
+				this.addElementName([e.returnvalue.props.children[1].props.children.props.children].flat(10)[0], e.instance.props.guild.name, {
+					frontBadges: [
+						this.settings.general.showGuildIcon && BDFDB.ReactUtils.createElement(BDFDB.LibraryComponents.GuildIcon, {
+							animate: e.instance.props.animatable && e.instance.state && e.instance.state.hovered,
+							guild: e.instance.props.guild,
+							size: BDFDB.LibraryComponents.GuildIcon.Sizes.SMALLER
+						}),
+						this.settings.general.showGuildBadge && BDFDB.ReactUtils.createElement(BDFDB.LibraryComponents.GuildBadge, {
+							size: this.settings.amounts.serverElementHeight * 0.5,
+							badgeColor: BDFDB.DiscordConstants.Colors.PRIMARY_400,
+							tooltipColor: BDFDB.LibraryComponents.TooltipContainer.Colors.BLACK,
+							tooltipPosition: BDFDB.LibraryComponents.TooltipContainer.Positions.RIGHT,
+							guild: e.instance.props.guild
+						})
+					],
+					backBadges: backBadges
+				});
 			}
 			
 			processGuildBadge (e) {
