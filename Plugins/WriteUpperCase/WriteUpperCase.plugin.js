@@ -2,7 +2,7 @@
  * @name WriteUpperCase
  * @author DevilBro
  * @authorId 278543574059057154
- * @version 1.4.5
+ * @version 1.4.6
  * @description Changes the first Letter of each Sentence in Message Inputs to Uppercase
  * @invite Jx3TjNS
  * @donate https://www.paypal.me/MircoWittrien
@@ -162,18 +162,7 @@ module.exports = (_ => {
 				if (e.instance.props.textValue && e.instance.props.focused && (!type || this.settings.places[type] || !this.defaults.places[type]) && (!this.settings.general.addQuickToggle || channelBlacklist.indexOf(e.instance.props.channel.id) == -1) && e.instance.props.richValue && e.instance.props.richValue[0] && !e.instance.props.richValue[0].command) {
 					let string = e.instance.props.textValue;
 					let newString = this.parse(string);
-					if (string != newString) {
-						let selection = document.getSelection();
-						let container = selection.anchorNode && BDFDB.DOMUtils.getParent("[contenteditable]", selection.anchorNode.parentElement);
-						if (container && Array.from(container.children).findIndex(n => n && n.contains(selection.anchorNode)) == (container.childElementCount - 1)) {
-							selection.modify("extend", "backward", "paragraphboundary");
-							if (selection.toString().length == selection.anchorNode.textContent.length) {
-								e.instance.props.textValue = newString;
-								if (e.instance.props.richValue) e.instance.props.richValue = BDFDB.SlateUtils.toRichValue(newString);
-							}
-							selection.collapseToEnd();
-						}
-					}
+					if (string != newString) e.instance.props.onChange(...[null, newString, BDFDB.SlateUtils.toRichValue(newString)]);
 				}
 			}
 			
