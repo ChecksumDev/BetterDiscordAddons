@@ -322,7 +322,6 @@ module.exports = (_ => {
 			
 			removeTooltip (parent) {
 				let [children, index] = BDFDB.ReactUtils.findParent(parent, {name: ["ListItemTooltip", "GuildTooltip", "BDFDB_TooltipContainer"]});
-				if (log) console.log(parent);
 				if (index == -1) {
 					if (guild) return BDFDB.ReactUtils.createElement(BDFDB.LibraryComponents.TooltipContainer, {
 						text: BDFDB.ReactUtils.createElement(BDFDB.LibraryComponents.GuildVoiceList, {
