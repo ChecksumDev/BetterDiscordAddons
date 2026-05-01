@@ -369,6 +369,7 @@
 			"DirectMessage": ["getUser", "getRecipientId"]
 		}},
 		"ScrollerBase": {"strings": ["paddingFix", "padding-left"]},
+		"Scrollers": {"strings": ["useImperativeHandle", "disableFocusRingScope", "scrollerRef"]},
 		"SearchResultsPagination": {"strings": ["maxVisiblePages", "pageSize", "innerClassName"]},
 		"SpinnerComponents": {"strings": ["WANDERING_CUBES", "wanderingCubes", ".spinningCircleInner"], "exported": false, "value": "exports", "map": {
 			"Spinner": [".spinningCircleInner"],
@@ -573,6 +574,7 @@
 		"SearchResultsHeader": {"strings": ["onPopoverRequestClose", "onSearchModeChange"]},
 		"SearchResultsInner": {"strings": ["totalResults", "resultsBlocked", "\"search-results\""], "noSearch": true},
 		"SearchResultsPagination": {"strings": ["maxVisiblePages", "pageSize", "floor"]},
+		"SettingsPanel": {"strings": ["panelKey:", "notice:", "layout:"]},
 		"SettingsView": {"strings": ["renderSettingsSectionTabBarItem", "PROFILE_CUSTOMIZATION", "badgeCount"]},
 		"Shakeable": {"protos": ["shake", "getDefaultAnimProps", "stop"]},
 		"Spoiler": {"strings": [".removeObscurity", "onReveal:"]},
